@@ -1,0 +1,19 @@
+experiment_id: exp-pgo-x86-nightly
+hypothesis: >-
+  x86_64 PGO was blocked by rustc's LLVM crashing while instrumenting the reth
+  crate (SIGILL in libLLVM.so.23.1-rust-1.99.1 on stable). Nightly carries a
+  different LLVM build, so the same two-pass PGO may simply compile. Worth one
+  attempt because m8azn-3xl is the fastest box measured (4.51s) and PGO is worth
+  -6% on ARM; nightly also brings evm2's tail-call dispatch, which was neutral on
+  ARM, so a win here is attributable to PGO.
+phase: compiler
+track: compiler
+parent: exp-cfg-control
+git_ref: main
+local_ref: d7c8d5c1c6  # branch perf/eth-call-rayon-io (champion code)
+build_script: build-nightly-pgo.sh
+build_timeout_min: 90
+env:
+  AUTOPERF_THP: always
+profiling: false
+families: [i7i, m8azn-3xl]

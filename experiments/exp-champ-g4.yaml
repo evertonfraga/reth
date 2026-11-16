@@ -1,0 +1,18 @@
+experiment_id: exp-champ-g4
+hypothesis: >-
+  Does tonight's champion recipe (PGO + THP) transfer off Graviton5? Same build on
+  i8g (Graviton4, Neoverse V2), measured against its own same-boot control. On m9g
+  the pair is worth -8.7%; a similar figure here makes it a property of the
+  workload and the ARM core family rather than of one chip.
+phase: compiler
+track: compiler
+parent: exp-cfg-control-g4
+git_ref: main
+local_ref: d7c8d5c1c6  # branch perf/eth-call-rayon-io (champion)
+build_script: build-pgo.sh
+# Two full builds plus a training run.
+build_timeout_min: 90
+env:
+  AUTOPERF_THP: always
+profiling: false
+families: [i8g]

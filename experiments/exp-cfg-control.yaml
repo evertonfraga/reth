@@ -1,0 +1,14 @@
+experiment_id: exp-cfg-control
+hypothesis: >-
+  Same-boot control for the instance-configuration sweep: the champion build
+  with no settings changed, measured on this boot so every sweep delta is a
+  same-host comparison (F9).
+parent: exp-rayon-io
+phase: system
+track: system
+git_ref: main
+local_ref: d7c8d5c1c6  # branch perf/eth-call-rayon-io (champion)
+profiling: false
+families: [m8azn-3xl]
+# m9g/m8azn build cold on their first run (LLVM download + full compile; m8azn has 4 vCPUs).
+build_timeout_min: 90

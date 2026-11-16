@@ -1,0 +1,15 @@
+experiment_id: base-symbols
+hypothesis: >-
+  Profiling-only twin of base: keep the symbol table and line tables (no codegen
+  change) so the flamegraph resolves reth frames; base's stripped binary left 54%
+  of server samples [unknown]. Timing here is profiler-inflated; not a champion
+  candidate.
+phase: profiling
+track: profiling
+parent: base
+git_ref: main
+env:
+  CARGO_PROFILE_RELEASE_STRIP: none
+  CARGO_PROFILE_RELEASE_DEBUG: line-tables-only
+profiling: true
+families: [c8a]

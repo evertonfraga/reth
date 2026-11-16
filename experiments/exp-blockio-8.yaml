@@ -1,0 +1,17 @@
+experiment_id: exp-blockio-8
+hypothesis: >-
+  Light eth_call is ~47% futex wait/wake on tokio's blocking pool (one shared
+  Mutex + Condvar per spawn, finish and park) with up to 256 calls in flight
+  (--rpc.max-blocking-io-requests default). Capping in-flight blocking IO at 8
+  (~cores on an 8-vCPU box) queues extra requests on reth's async semaphore
+  instead, shrinking the pool and its lock contention. Same build as the
+  champion; config only.
+phase: system
+track: system
+parent: exp-address-hash
+git_ref: main
+local_ref: 96cdbe72d7  # branch perf/reuse-hashed-address (champion)
+runtime_env:
+  RETH_EXTRA_ARGS: "--rpc.max-blocking-io-requests=8"
+profiling: false
+families: [c8a]

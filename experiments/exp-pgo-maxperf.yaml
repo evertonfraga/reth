@@ -1,0 +1,19 @@
+experiment_id: exp-pgo-maxperf
+hypothesis: >-
+  PGO plus fat LTO. Fat LTO alone was neutral, but the two compound: LTO gives
+  LLVM the whole program, and the PGO profile then tells it which cross-crate
+  calls on the eth_call path to inline and how to lay out their blocks. Only
+  worth running if exp-pgo wins.
+phase: compiler
+track: compiler
+parent: exp-pgo
+git_ref: main
+local_ref: d7c8d5c1c6  # branch perf/eth-call-rayon-io (champion)
+build_script: build-pgo.sh
+env:
+  CARGO_PROFILE_RELEASE_LTO: fat
+  CARGO_PROFILE_RELEASE_CODEGEN_UNITS: "1"
+# Two fat-LTO builds plus a training run.
+build_timeout_min: 150
+profiling: false
+families: [m9g]

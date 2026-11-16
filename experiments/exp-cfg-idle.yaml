@@ -1,0 +1,15 @@
+experiment_id: exp-cfg-idle
+hypothesis: >-
+  Light eth_call is wakeup-bound; leaving C6/C6P costs 170-210us on c8i and C2
+  100us on c8a. Disabling idle states with exit latency above 1us (keeps POLL
+  and C1) should cut wakeup latency on x86. c8g exposes no cpuidle states, so it
+  doubles as a control there.
+parent: exp-cfg-control
+phase: system
+track: system
+git_ref: main
+local_ref: d7c8d5c1c6  # branch perf/eth-call-rayon-io (champion)
+profiling: false
+families: [c8a, c8i, c8g, m9g, m8azn, m8azn-3xl]
+env:
+  AUTOPERF_MAX_IDLE_LATENCY_US: "1"

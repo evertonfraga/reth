@@ -1,0 +1,19 @@
+experiment_id: exp-cursor-maxperf
+hypothesis: >-
+  reth's own [profile.maxperf] (fat LTO + codegen-units=1) on top of the cursor
+  reuse lets LLVM inline across the jsonrpsee -> EthApi -> provider -> libmdbx
+  crate boundaries that dominate both phases (per-call provider/factory clones,
+  txn_execute closures, cursor get_value). Expect a few percent, mostly on the
+  light phase's per-call glue; the MDBX seek and keccak kernels are unchanged.
+phase: compiler
+track: compiler
+parent: exp-storage-cursor
+git_ref: main
+local_ref: 4be52a6eda7a  # branch perf/reuse-storage-cursor
+env:
+  CARGO_PROFILE_RELEASE_LTO: fat
+  CARGO_PROFILE_RELEASE_CODEGEN_UNITS: "1"
+# Fat LTO of the whole node is one long single-threaded link.
+build_timeout_min: 90
+profiling: false
+families: [c8a, c8i, c8g]

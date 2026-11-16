@@ -1,0 +1,15 @@
+experiment_id: exp-rayon-io
+hypothesis: >-
+  Light eth_call spends ~47% of server CPU in futex wait/wake on tokio's
+  blocking pool (one mutex + condvar per spawn, finish and park), independent of
+  how many calls are in flight (exp-blockio-8 had no effect). Running the
+  spawn_blocking_io closure on the rayon RPC pool (per-worker deques, spin before
+  sleep) should cut the light phase substantially; heavy calls are CPU-bound per
+  call and should be flat or slightly better.
+phase: system
+track: system
+parent: exp-address-hash
+git_ref: main
+local_ref: d7c8d5c1c6  # branch perf/eth-call-rayon-io (prototype)
+profiling: false
+families: [c8a, c8i, c8g]

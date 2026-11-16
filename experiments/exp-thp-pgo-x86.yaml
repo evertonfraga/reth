@@ -1,0 +1,15 @@
+experiment_id: exp-thp-pgo-x86
+hypothesis: >-
+  Champion recipe (stable PGO + THP) on the x86 boxes. Stable PGO was previously
+  blocked by a rustc LLVM SIGILL while instrumenting the reth crate, but that was
+  rustc 1.99.1 and these boxes now run 1.100.0 — so try stable before falling back
+  to the nightly workaround. Measured against the same-harness stock baselines.
+parent: exp-pgo
+git_ref: main
+local_ref: d7c8d5c1c6  # branch perf/eth-call-rayon-io (champion)
+env:
+  AUTOPERF_THP: always
+build_script: build-pgo.sh
+build_timeout_min: 90
+profiling: false
+families: [c8a, c8i, m8azn, m8azn-3xl, i7i]

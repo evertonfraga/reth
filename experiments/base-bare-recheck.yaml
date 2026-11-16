@@ -1,0 +1,14 @@
+experiment_id: base-bare-recheck
+hypothesis: >-
+  Stock main (482366d) re-measured on the current hosts, back to back with
+  exp-rayon-io-recheck, so the cumulative gain of the committed branches is a
+  same-host comparison. c8g's host got ~4% faster across an idle stop/start, so
+  the original base-bare (8.90s) is not comparable with today's numbers.
+phase: baseline
+track: baseline
+parent: base-bare
+git_ref: main
+profiling: false
+families: [c8a, c8i, c8g, m8azn, m8azn-3xl, i7i, i8g]
+# c8a/c8i/c8g were terminated long ago: fresh launch + cold build (LLVM download).
+build_timeout_min: 90

@@ -1,0 +1,12 @@
+experiment_id: exp-cfg-control-end
+hypothesis: >-
+  Closing same-boot control for the instance-configuration sweep: the champion
+  with every setting back at its default (build.sh restores idle states and
+  THP). If it matches exp-cfg-control, sweep deltas are not host drift.
+parent: exp-cfg-control
+phase: system
+track: system
+git_ref: main
+local_ref: d7c8d5c1c6  # branch perf/eth-call-rayon-io (champion)
+profiling: false
+families: [m9g, m8azn-3xl]

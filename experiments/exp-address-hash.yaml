@@ -1,0 +1,14 @@
+experiment_id: exp-address-hash
+hypothesis: >-
+  With hashed state each SLOAD runs keccak256(address) through the global keccak
+  cache (lookup + bucket lock, part of keccak_cache's ~19% of heavy-phase server
+  CPU in base-symbols) even though the 10k-slot call reads one account. Keeping
+  the last (address, hash) pair on the provider drops one cache lookup per SLOAD.
+  Expect ~3-5% off heavy (~2-3% total), light flat.
+phase: algorithm
+track: algorithm
+parent: exp-layout-flag
+git_ref: main
+local_ref: 96cdbe72d7  # branch perf/reuse-hashed-address
+profiling: false
+families: [c8a, c8i, c8g]

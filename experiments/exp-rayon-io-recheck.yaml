@@ -1,0 +1,13 @@
+experiment_id: exp-rayon-io-recheck
+hypothesis: >-
+  Same build as exp-rayon-io, re-measured on the boxes as they are now. The
+  boxes were idle-stopped and restarted (likely new physical hosts) between
+  exp-rayon-io and the CPU-feature runs, whose c8g gains (~2.5%) did not stack.
+  If this re-measure also lands near 6.55s on c8g, those gains were host change.
+phase: system
+track: system
+parent: exp-rayon-io
+git_ref: main
+local_ref: d7c8d5c1c6  # branch perf/eth-call-rayon-io (champion)
+profiling: false
+families: [c8a, c8i, c8g, m9g, m8azn, m8azn-3xl, i7i, i8g]

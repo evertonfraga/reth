@@ -1,0 +1,15 @@
+experiment_id: exp-c8a-znver5
+hypothesis: >-
+  c8a is an EPYC 9R45 (Zen 5) but the family builds with -C target-cpu=znver4,
+  so codegen targets Zen 4 and sha3-asm picks its AVX-512VL keccak; with znver5
+  it picks the scalar x86_64 keccak, which its author benchmarked faster on Zen 5
+  (keccak is ~19% of heavy-phase CPU). Expect a few % on heavy, light flat.
+phase: compiler
+track: compiler
+parent: exp-rayon-io
+git_ref: main
+local_ref: d7c8d5c1c6  # branch perf/eth-call-rayon-io (champion)
+# Appended after the family's znver4; rustc uses the last -C target-cpu.
+build_flags: "-C target-cpu=znver5"
+profiling: false
+families: [c8a]

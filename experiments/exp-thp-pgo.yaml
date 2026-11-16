@@ -1,0 +1,16 @@
+experiment_id: exp-thp-pgo
+hypothesis: >-
+  THP on top of the PGO champion (THP has never been tested on Graviton5, and the
+  earlier c8g "win" was host drift). 4.9% of light-phase samples were page faults,
+  almost all in jemalloc arena growth, and each heavy call builds ~1 MB of storage
+  maps; THP=always backs that anonymous memory with 2 MiB pages. Tests whether a
+  system lever still stacks on top of a PGO build.
+parent: exp-pgo
+git_ref: main
+local_ref: d7c8d5c1c6  # branch perf/eth-call-rayon-io (champion)
+env:
+  AUTOPERF_THP: always
+build_script: build-pgo.sh
+build_timeout_min: 90
+profiling: false
+families: [c8g, i8g]

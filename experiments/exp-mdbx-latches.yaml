@@ -1,0 +1,14 @@
+experiment_id: exp-mdbx-latches
+hypothesis: >-
+  Every MDBX operation calls txn_execute, which takes the transaction mutex and
+  reads the SeqCst timed_out latch; together ~8% of heavy-phase server CPU
+  (>::lock 7.4% + atomic_load 1.1% in champ-symbols). Both latches are one-way,
+  so Acquire/Release is sufficient and replaces full barriers (dmb ish on
+  aarch64) with ldar/stlr. Expect a few % on heavy, most on m9g/Graviton5.
+phase: algorithm
+track: algorithm
+parent: exp-cfg-control
+git_ref: main
+local_ref: abb594c223  # branch perf/mdbx-relaxed-latches
+profiling: false
+families: [m9g, m8azn-3xl]

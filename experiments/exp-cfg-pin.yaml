@@ -1,0 +1,16 @@
+experiment_id: exp-cfg-pin
+hypothesis: >-
+  The node and the oha client compete for the same 8 vCPUs (4 SMT cores on c8i).
+  Pinning reth to vCPUs 0-5 and oha to 6-7 isolates them; on c8i vCPUs 6-7 may
+  still share physical cores with reth's 2-3. Tests whether scheduler placement,
+  not raw CPU, costs time.
+parent: exp-cfg-control
+phase: system
+track: system
+git_ref: main
+local_ref: d7c8d5c1c6  # branch perf/eth-call-rayon-io (champion)
+profiling: false
+families: [c8a, c8i, c8g]
+runtime_env:
+  RETH_CPUS: "0-5"
+  OHA_CPUS: "6,7"

@@ -1,0 +1,19 @@
+experiment_id: exp-bolt
+hypothesis: >-
+  BOLT is the canonical step after PGO: it rewrites the linked binary, reordering
+  basic blocks (ext-tsp) and functions (hfsort+) and splitting cold code, which
+  PGO cannot do across the final layout. reth's binary is large and the eth_call
+  path touches jsonrpsee, the provider stack, MDBX and the EVM in sequence, so
+  I-cache and iTLB locality should have room. aarch64 has no LBR, so this uses
+  BOLT's instrumentation mode on the PGO binary. Expect 0-5% on top of PGO+THP.
+phase: compiler
+track: compiler
+parent: exp-thp-pgo
+git_ref: main
+local_ref: d7c8d5c1c6  # branch perf/eth-call-rayon-io (champion code)
+build_script: build-bolt.sh
+build_timeout_min: 90
+env:
+  AUTOPERF_THP: always
+profiling: false
+families: [m9g]

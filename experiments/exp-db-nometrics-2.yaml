@@ -1,0 +1,13 @@
+experiment_id: exp-db-nometrics-2
+hypothesis: >-
+  Confirmation pair for exp-db-nometrics, which measured -2.1% on m9g with
+  overlapping run ranges (inside Graviton5's +-3% drift). Re-measured against a
+  fresh closing control on the same boot: if it lands near -2% again, the flag is
+  a real operational win; if it lands on the control, the first result was drift.
+parent: exp-cfg-control-end
+git_ref: main
+local_ref: d7c8d5c1c6  # branch perf/eth-call-rayon-io (champion)
+runtime_env:
+  RETH_EXTRA_ARGS: "--db.disable-metrics"
+profiling: false
+families: [m9g, m8azn-3xl]

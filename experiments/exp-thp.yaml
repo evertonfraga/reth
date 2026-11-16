@@ -1,0 +1,15 @@
+experiment_id: exp-thp
+hypothesis: >-
+  Re-test on the two best boxes (never run on m9g/Graviton5, and the earlier c8g
+  "win" turned out to be host drift). 4.9% of light-phase samples were page
+  faults, nearly all in jemalloc arena growth, and each heavy call builds ~1 MB
+  of storage maps. THP=always backs that anonymous memory with 2 MiB pages.
+phase: system
+track: system
+parent: exp-cfg-control
+git_ref: main
+local_ref: d7c8d5c1c6  # branch perf/eth-call-rayon-io (champion)
+env:
+  AUTOPERF_THP: always
+profiling: false
+families: [m9g, m8azn-3xl]

@@ -1,0 +1,20 @@
+experiment_id: exp-offbox-c8a
+hypothesis: >-
+  Same champion build as exp-thp-pgo-x86 on c8a (3.04s: light 0.99, heavy 2.05),
+  but with the timed client on its OWN instance. On-box, c8a light got slightly
+  worse under optimisation (0.94 -> 0.99s), the signature of measuring the load
+  generator rather than the node. Off-box the client no longer competes for cores,
+  at the cost of real same-AZ RTT (~0.1-0.25ms vs ~0.01ms loopback), so expect
+  light to read HIGHER in absolute terms but finally track the server.
+parent: exp-pgo
+git_ref: main
+local_ref: d7c8d5c1c6  # branch perf/eth-call-rayon-io (champion)
+env:
+  AUTOPERF_THP: always
+build_script: build-pgo.sh
+build_timeout_min: 90
+profiling: false
+# Timed client on its own FIXED-family instance (c8g-8xl, 32 vCPU) in the node's
+# subnet, so the client stays constant across node families; node binds its private VPC IP.
+load_generator: true
+families: [c8a]

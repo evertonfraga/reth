@@ -1,0 +1,15 @@
+experiment_id: exp-cfg-rotxn
+hypothesis: >-
+  Every eth_call opens an MDBX read transaction that the read-tx-timeout manager
+  tracks (DashMap insert/remove and an is_timed_out check under the txn mutex,
+  visible in the light profile). --db.read-transaction-timeout=0 disables the
+  timeout, removing that bookkeeping.
+parent: exp-cfg-control
+phase: system
+track: system
+git_ref: main
+local_ref: d7c8d5c1c6  # branch perf/eth-call-rayon-io (champion)
+profiling: false
+families: [c8a, c8i, c8g]
+runtime_env:
+  RETH_EXTRA_ARGS: "--db.read-transaction-timeout=0"

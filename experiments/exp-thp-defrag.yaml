@@ -1,0 +1,20 @@
+experiment_id: exp-thp-defrag
+hypothesis: >-
+  The champion sets THP enabled=always but leaves defrag=madvise, so when no huge
+  page is free the kernel serves a 4K page instead of compacting. THP was worth
+  -2.7% here, which means the heap does benefit from 2 MiB pages; defrag=always
+  makes the allocation actually happen under fragmentation, at the cost of
+  allocation-time stalls. Tests whether the THP win is currently being left on
+  the table.
+phase: system
+track: system
+parent: exp-thp-pgo
+git_ref: main
+local_ref: d7c8d5c1c6  # branch perf/eth-call-rayon-io (champion code)
+build_script: build-pgo.sh
+build_timeout_min: 90
+env:
+  AUTOPERF_THP: always
+  AUTOPERF_THP_DEFRAG: always
+profiling: false
+families: [m9g]

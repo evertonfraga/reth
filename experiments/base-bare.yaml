@@ -1,0 +1,12 @@
+experiment_id: base-bare
+hypothesis: >-
+  Same build as base, timed WITHOUT profilers. In base, perf stat's inherited
+  counters (sched-in hook on every context switch) cut light eth_call from
+  183k req/s (bare warmup) to ~49k req/s, so the bare run is the honest champion
+  metric. Profiles come from base-symbols instead.
+phase: baseline
+track: baseline
+parent: base
+git_ref: main
+profiling: false
+families: [c8a, c8i, c8g]

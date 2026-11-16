@@ -1,0 +1,18 @@
+experiment_id: exp-nightly-pgo-thp
+hypothesis: >-
+  Full stack: nightly (evm2's tail-call opcode dispatch) + PGO + THP. Nightly
+  alone measured 4.63s vs the 4.72s control (-1.9%), and PGO+THP is the champion
+  at 4.31s. If the dispatch change is independent of code layout and page-walk
+  cost, the three should combine; if PGO's profile already fixes the dispatch
+  loop's layout, nightly adds nothing on top.
+phase: compiler
+track: compiler
+parent: exp-thp-pgo
+git_ref: main
+local_ref: d7c8d5c1c6  # branch perf/eth-call-rayon-io (champion code)
+build_script: build-nightly-pgo.sh
+build_timeout_min: 90
+env:
+  AUTOPERF_THP: always
+profiling: false
+families: [m9g]

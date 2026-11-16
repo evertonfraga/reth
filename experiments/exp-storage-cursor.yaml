@@ -1,0 +1,14 @@
+experiment_id: exp-storage-cursor
+hypothesis: >-
+  Each SLOAD in OverlayStateProvider::storage_from_db opens and drops a fresh
+  HashedStorages dup cursor (cursor_with_dbi + Arc clone + mdbx_cursor_open/close
+  under the txn mutex), ~10% of heavy-phase server CPU in base-symbols. Caching
+  one cursor per provider removes that per-slot cost; the B-tree seek itself is
+  unchanged. Expect heavy eth_call ~8-10% faster (~3-5% total), light unchanged.
+phase: algorithm
+track: algorithm
+parent: base-bare
+git_ref: main
+local_ref: 4be52a6eda7a  # branch perf/reuse-storage-cursor
+profiling: false
+families: [c8a, c8i, c8g]

@@ -1,0 +1,24 @@
+experiment_id: exp-rayon-v2
+hypothesis: >-
+  Re-measure the rayon RPC-pool change on the revision we would actually submit.
+  Every figure so far (c8a -6.6%, c8i -14.7%, c8g -10.5%, and the 3.04s c8a
+  champion) came from the prototype d7c8d5c1c6, which dispatched to the TRACING
+  pool and leaned on the task spawner for shutdown. v2 dispatches to
+  Runtime::rpc_pool() and selects on on_shutdown_signal() itself, so both the
+  pool and the cancellation path differ. Expect the same direction, because the
+  mechanism being removed (tokio's blocking-pool mutex and condvar on every
+  spawn, finish and park) is unchanged; the magnitude is an open question, and
+  could be better, since a tracing burst can no longer queue ahead of short
+  calls.
+parent: exp-pgo
+git_ref: main
+local_ref: d108ce9b06  # branch perf/eth-call-rayon-io-v2 (tip; supersedes d7c8d5c1c6)
+env:
+  AUTOPERF_THP: always
+build_script: build-pgo.sh
+build_timeout_min: 90
+profiling: false
+# Timed client on its own FIXED-family instance (c8g-8xl, 32 vCPU) in the node's
+# subnet, so the client stays constant across node families; node binds its private VPC IP.
+load_generator: true
+families: [c8a, c8i, c8g]

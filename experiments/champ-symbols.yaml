@@ -1,0 +1,17 @@
+experiment_id: champ-symbols
+hypothesis: >-
+  Profiling-only twin of exp-address-hash: keep the symbol table and line tables
+  (no codegen change) so the flamegraph resolves the light phase, which was ~60%
+  kernel time in base-symbols (futex wakeups for the spawn_blocking handoff, run
+  queue spinlocks), plus the per-call provider/factory setup and metrics lookup.
+  Timing is profiler-inflated; not a champion candidate.
+phase: profiling
+track: profiling
+parent: exp-address-hash
+git_ref: main
+local_ref: 96cdbe72d7  # branch perf/reuse-hashed-address (champion)
+env:
+  CARGO_PROFILE_RELEASE_STRIP: none
+  CARGO_PROFILE_RELEASE_DEBUG: line-tables-only
+profiling: true
+families: [c8a]

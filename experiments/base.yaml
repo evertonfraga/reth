@@ -1,0 +1,9 @@
+experiment_id: base
+hypothesis: Baseline measurement for reth
+phase: baseline
+track: baseline
+parent: null
+git_ref: main
+profiling: true
+# Onboarding starts on ONE instance (arch-matched to the toolchain); expand to the full tier at the hardware phase.
+families: [c8a]

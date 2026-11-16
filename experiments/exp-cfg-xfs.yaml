@@ -1,0 +1,15 @@
+experiment_id: exp-cfg-xfs
+hypothesis: >-
+  The bench datadir lives on tmpfs (/tmp on AL2023); a real node uses XFS on
+  EBS. Moving it to $HOME (XFS, noatime, gp3) checks whether file-system reads
+  matter here. The DB is rebuilt from genesis every run, so pages should stay
+  hot in the page cache: expect no change.
+parent: exp-cfg-control
+phase: system
+track: system
+git_ref: main
+local_ref: d7c8d5c1c6  # branch perf/eth-call-rayon-io (champion)
+profiling: false
+families: [c8a, c8i, c8g, m9g]
+runtime_env:
+  ETHCALL_DATADIR_BASE: /home/ec2-user

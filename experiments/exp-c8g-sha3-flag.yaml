@@ -1,0 +1,16 @@
+experiment_id: exp-c8g-sha3-flag
+hypothesis: >-
+  keccak256 runs through keccak-asm's NEON backend, whose EOR3/BCAX/RAX1/XAR
+  paths are gated on target_feature = "sha3"; target-cpu=neoverse-v2 does not
+  enable it, so Graviton4 emulates each with 2-3 instructions. Adding
+  -C target-feature=+sha3 switches to the native SHA3 instructions. Keccak is
+  ~19% of heavy-phase CPU, so expect a few % on c8g; test.sh's exact
+  heavy-call hash checks correctness.
+phase: compiler
+track: compiler
+parent: exp-rayon-io
+git_ref: main
+local_ref: d7c8d5c1c6  # branch perf/eth-call-rayon-io (champion)
+build_flags: "-C target-feature=+sha3"
+profiling: false
+families: [c8g]

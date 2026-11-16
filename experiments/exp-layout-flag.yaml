@@ -1,0 +1,14 @@
+experiment_id: exp-layout-flag
+hypothesis: >-
+  storage_from_db and basic_account_from_db re-read the storage layout through
+  the provider's settings RwLock on every call (cached_storage_settings, ~3% of
+  heavy-phase server CPU in base-symbols) although OverlayStateProvider already
+  holds it as is_v2. Branching on the captured flag removes one RwLock
+  read-lock/unlock per SLOAD. Expect ~2-3% off heavy (~1-2% total), light flat.
+phase: algorithm
+track: algorithm
+parent: exp-storage-cursor
+git_ref: main
+local_ref: 82d480e89f  # branch perf/overlay-layout-flag
+profiling: false
+families: [c8a, c8i, c8g]
