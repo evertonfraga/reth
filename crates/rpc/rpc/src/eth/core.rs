@@ -583,10 +583,17 @@ mod tests {
         BalProvider, BlockReaderIdExt, NodePrimitivesProvider, StateProviderFactory,
         StorageSettings, TransactionsProvider,
     };
-    use reth_tasks::cancel::{is_cancelled, CancelOnDrop};
+    use reth_tasks::{
+        cancel::{is_cancelled, CancelOnDrop},
+        RayonConfig, RuntimeBuilder, RuntimeConfig, TokioConfig,
+    };
     use reth_testing_utils::generators::{self, random_block, random_receipt, BlockParams};
     use reth_transaction_pool::test_utils::{testing_pool, MockTransaction, TestPool};
-    use std::time::{Duration, Instant};
+    use std::{
+        sync::atomic::{AtomicBool, Ordering},
+        time::{Duration, Instant},
+    };
+    use tokio::runtime::Handle;
 
     type FakeEthApi<P = MockEthProvider> = EthApi<
         RpcNodeCoreAdapter<P, TestPool, NoopNetwork, EthEvmConfig>,
@@ -654,6 +661,73 @@ mod tests {
         }
 
         assert!(cancelled_rx.await.unwrap());
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn blocking_task_skips_closure_dropped_before_start() {
+        // A single RPC thread, so a closure queued behind a running one has not started yet.
+        let runtime = RuntimeBuilder::new(
+            RuntimeConfig::default()
+                .with_tokio(TokioConfig::existing_handle(Handle::current()))
+                .with_rayon(RayonConfig::default().with_rpc_threads(1)),
+        )
+        .build()
+        .unwrap();
+        let provider = MockEthProvider::default();
+        let api = EthApiBuilder::new(
+            provider.clone(),
+            testing_pool(),
+            NoopNetwork::default(),
+            EthEvmConfig::new(provider.chain_spec()),
+        )
+        .task_spawner(runtime)
+        .build();
+
+        let (started_tx, started_rx) = tokio::sync::oneshot::channel();
+        let (release_tx, release_rx) = std::sync::mpsc::channel();
+        let running = api.spawn_blocking_io(move |_| {
+            started_tx.send(()).unwrap();
+            release_rx.recv_timeout(Duration::from_secs(5)).unwrap();
+            Ok(())
+        });
+        started_rx.await.unwrap();
+
+        let ran = Arc::new(AtomicBool::new(false));
+        // Closes once the pool has dealt with the queued closure, whether it ran or was skipped.
+        let (processed_tx, processed_rx) = tokio::sync::oneshot::channel::<()>();
+        let queued = api.spawn_blocking_io({
+            let ran = Arc::clone(&ran);
+            move |_| {
+                ran.store(true, Ordering::SeqCst);
+                drop(processed_tx);
+                Ok(())
+            }
+        });
+        drop(queued);
+
+        release_tx.send(()).unwrap();
+        running.await.unwrap();
+        processed_rx.await.unwrap_err();
+        assert!(!ran.load(Ordering::SeqCst));
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn blocking_task_resolves_on_shutdown() {
+        let api = build_test_eth_api(MockEthProvider::default());
+        let (started_tx, started_rx) = tokio::sync::oneshot::channel();
+        let request = api.spawn_blocking_io(move |_| {
+            started_tx.send(()).unwrap();
+            let deadline = Instant::now() + Duration::from_secs(5);
+            while !is_cancelled() && Instant::now() < deadline {
+                std::thread::sleep(Duration::from_millis(1));
+            }
+            Ok(())
+        });
+        started_rx.await.unwrap();
+
+        api.io_task_spawner().graceful_shutdown();
+        let err = request.await.unwrap_err();
+        assert!(matches!(err, EthApiError::InternalEthError));
     }
 
     #[tokio::test(flavor = "multi_thread")]
@@ -748,8 +822,9 @@ mod tests {
 
     #[tokio::test]
     async fn test_eth_api_settings() {
+        use evm2_inspectors::tracing::{TraceLimitBehavior, TraceLimits};
         use reth_rpc_eth_api::{
-            helpers::{Call, EthState, EthTransactions, LoadPendingBlock},
+            helpers::{Call, EthState, EthTransactions, LoadPendingBlock, Trace},
             EthApiTypes,
         };
         use reth_rpc_eth_types::{builder::config::PendingBlockKind, EthApiSettings};
@@ -766,6 +841,7 @@ mod tests {
             assert_eq!(actual.cache_computed_bals, expected.cache_computed_bals);
             assert_eq!(actual.gas_cap, expected.gas_cap);
             assert_eq!(actual.max_simulate_blocks, expected.max_simulate_blocks);
+            assert_eq!(actual.max_trace_bytes, expected.max_trace_bytes);
             assert_eq!(
                 actual.compute_state_root_for_eth_simulate,
                 expected.compute_state_root_for_eth_simulate
@@ -795,6 +871,7 @@ mod tests {
             cache_computed_bals: true,
             gas_cap: 123_456,
             max_simulate_blocks: 7,
+            max_trace_bytes: Some(4096),
             compute_state_root_for_eth_simulate: true,
             eth_proof_window: 42,
             pending_block_kind: PendingBlockKind::Empty,
@@ -818,6 +895,7 @@ mod tests {
         .max_blocking_io_requests(expected.max_blocking_io_requests)
         .gas_cap(expected.gas_cap.into())
         .max_simulate_blocks(expected.max_simulate_blocks)
+        .max_trace_bytes(expected.max_trace_bytes)
         .compute_state_root_for_eth_simulate(expected.compute_state_root_for_eth_simulate)
         .eth_proof_window(expected.eth_proof_window)
         .pending_block_kind(expected.pending_block_kind)
@@ -833,6 +911,12 @@ mod tests {
         );
         assert_eq!(Call::call_gas_limit(&api), expected.gas_cap);
         assert_eq!(Call::max_simulate_blocks(&api), expected.max_simulate_blocks);
+        assert_eq!(
+            Trace::trace_limits(&api),
+            TraceLimits::default()
+                .set_max_recorded_bytes(expected.max_trace_bytes)
+                .set_behavior(TraceLimitBehavior::Halt)
+        );
         assert_eq!(
             Call::compute_state_root_for_eth_simulate(&api),
             expected.compute_state_root_for_eth_simulate
